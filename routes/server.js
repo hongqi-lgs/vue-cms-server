@@ -1,6 +1,7 @@
 var express = require('express');
 var router = express.Router();
-
+var fs = require('fs')
+var path = require('path')
 //mongodb
 var mongoose = require('mongoose');
 mongoose.Promise = global.Promise;
@@ -93,6 +94,33 @@ router.post('/publish', function(req, res, next) {
     // res.end(JSON.stringify(params.id));
 });
 
+router.post('/uploadImg', function(req, res, next) {
+    console.log(req.data, req.files, req.body,'ddsdewe')
+    // let params = req.body;
+    // let newArticle = new myModel(params);
+    // newArticle.save(function (err) {
+    //     if (err) {
+    //         res.send(err);
+    //     } else {
+    //         res.end(JSON.stringify(params.id));
+    //     }
+    // })
+    // res.end(JSON.stringify(params.id));
+    var fstream;
+    req.pipe(req.busboy);
+    req.busboy.on('file', function (fieldname, file, xx) {
+        console.log("Uploading: " + fieldname, xx);
+        //Path where image will be uploaded
+        const finalFileName = xx.filename.replace(/^.*?(\.\w+)$/, 'pic_' + Date.now() + '$1')
+        console.log(finalFileName)
+        fstream = fs.createWriteStream(path.join(__dirname, '../public/img/') + finalFileName);
+        file.pipe(fstream);
+        fstream.on('close', function () {    
+            console.log("Upload Finished of " + xx.filename);              
+            res.end(JSON.stringify({file: finalFileName}));           //where to go next
+        });
+    });
+});
 
 
 
